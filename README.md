@@ -14,57 +14,74 @@ Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
 The page will reload when you make changes.\
 You may also see any lint errors in the console.
 
-### `npm test`
+## Cambios post clase
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+Ya chiquilles de mi corazón, hice algunos pequeños cambios:
 
-### `npm run build`
+### Componente home.js
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+Este [componente](./src/components/home.js) realiza la llamada a un método asíncrono que trae los datos desde firestore.
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+```jsx
+const [films, setFilms] = React.useState([]);
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+React.useEffect(() => {
+	try {
+		const readData = async (coleccion) => {
+			const datos = await getDocs(collection(db, coleccion));
+			const arrDocumentos = datos.docs.map((doc) => doc.data());
+			setFilms(arrDocumentos);
+		};
+		readData('films');
+	} catch (error) {
+		console.error(error);
+	}
+}, []);
+```
 
-### `npm run eject`
+Toma nota la función `readData` (que recibe como argumento la colección que queremos consultar, así es más genérica). Esta es llamada pasándole por argumento el nombre de la colección. Así, esta función podría ser movida a otro componente o bien gestionada por React Context, para que sea utilizada desde otros lugares (algo como lo que hicimos con localStorage)
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
+Toma nota también del uso de `useState` y de `useEffect`, que nos permite evitar pasar datos de un componente a otro y evita el renderizado loquillo y frenético.
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+Luego, el return de este componente es así:
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
+```jsx
+return (
+	<FilmsList>
+		{films.map((f) => (
+			<FilmItem id={f.key} name={f.name} category={f.category} />
+		))}
+	</FilmsList>
+);
+```
 
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
+Y este componente es llamado por [App.js](./src/App.js):
 
-## Learn More
+```jsx
+function App() {
+	return (
+		<div className='container mb-2'>
+			<header>
+				<h1>Mis peliculas</h1>
+			</header>
+			<Home />
+		</div>
+	);
+}
+```
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+Así, queda mucho más limpio.
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+Además, agregué bootstrap vía CDN en [index.html](./public/index.html) para que se vea mejor.
 
-### Code Splitting
+# Desafíos
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
+Para que esto sea más entretenido, te presento los siguientes desafíos (no son con nota, solo hazlo para que mejores tu uso sobre estas tecnologías y obvio, por joder..).
 
-### Analyzing the Bundle Size
+Clona este proyecto, y haz lo siguiente:
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
-
-### Making a Progressive Web App
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
-
-### Advanced Configuration
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
-
-### Deployment
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
-
-### `npm run build` fails to minify
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+1. Cambia en [firebase.js](./src/firebase.js) los datos de conexión a tu propia instanacia de firestore.
+2. Si te fijas, en la consola del browser aparece un warning: `VM3357 react_devtools_backend.js:4026 Warning: Each child in a list should have a unique "key" prop.` Descubre como eliminarlo.
+3. Agrega un/os componente/s que te permita agregar nuevas películas a tu BD.
+4. Agrega un/os componente/s que te permita editar una película.
+5. Agrega un/os componente/s que permita eliminar una película.
